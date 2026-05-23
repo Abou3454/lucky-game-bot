@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مزرعة الحظ</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    width:100vw;
+    height:100dvh;
+    overflow:hidden;
+    font-family:Arial,sans-serif;
+    color:#4b210c;
+    text-align:center;
+    background:
+        radial-gradient(circle at 25% 20%,rgba(255,255,255,.35),transparent 14%),
+        radial-gradient(circle at 70% 30%,rgba(255,255,255,.25),transparent 15%),
+        linear-gradient(180deg,#59d8f5 0%,#5fdaf4 58%,#ff9d6d 58%,#f47d52 100%);
+}
+
+.app{
+    width:min(100vw,430px);
+    height:100dvh;
+    margin:auto;
+    position:relative;
+    padding:8px;
+    display:flex;
+    flex-direction:column;
+}
+
+.top{
+    height:54px;
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+    gap:6px;
+    flex-shrink:0;
+}
+
+.left-icons,.right-icons{
+    display:flex;
+    gap:7px;
+    align-items:center;
+}
+
+.left-icons{justify-content:flex-start}
+.right-icons{justify-content:flex-end}
+
+.circle-btn{
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    border:3px solid #fff2b0;
+    background:linear-gradient(180deg,#ffce86,#ef8b55);
+    color:#7b3215;
+    font-size:22px;
+    font-weight:900;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 3px 0 #9b4b28,0 0 10px rgba(255,255,255,.4);
+    cursor:pointer;
+}
+
+.player-card{
+    min-width:142px;
+    height:44px;
+    border:3px solid #4b210c;
+    border-radius:16px;
+    background:linear-gradient(180deg,#fff6b6,#f8d86b);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    box-shadow:0 3px 0 #9b4b28;
+    overflow:hidden;
+}
+
+.player-name{
+    font-size:14px;
+    font-weight:900;
+    max-width:130px;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+
+.balance{
+    font-size:13px;
+    font-weight:900;
+    color:#333;
+}
+
+.signal{
+    position:absolute;
+    top:70px;
+    right:20px;
+    color:#0baf32;
+    font-size:13px;
+    font-weight:900;
+    text-shadow:0 0 5px #fff;
+}
+
+.farm-area{
+    position:relative;
+    flex:1;
+    min-height:0;
+}
+
+.wheel-layout{
+    position:absolute;
+    top:18px;
+    left:50%;
+    transform:translateX(-50%);
+    width:min(92vw,390px);
+    height:min(92vw,390px);
+}
+
+.center-cat{
+    position:absolute;
+    top:46%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    width:128px;
+    height:128px;
+    border-radius:50%;
+    border:5px solid #5c2c16;
+    background:radial-gradient(circle,#fff,#ffd2af);
+    z-index:4;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 5px 0 #ad7045,0 0 12px rgba(255,255,255,.8);
+}
+
+.cat{
+    font-size:58px;
+    line-height:1;
+}
+
+.choose-text{
+    font-size:20px;
+    font-weight:900;
+    color:#7b3215;
+}
+
+.timer{
+    position:absolute;
+    right:-8px;
+    bottom:14px;
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    background:#ffe748;
+    border:3px solid #5c2c16;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:14px;
+    font-weight:900;
+}
+
+.option{
+    position:absolute;
+    width:92px;
+    height:92px;
+    border-radius:50%;
+    border:4px solid #5c2c16;
+    background:#fff6df;
+    box-shadow:0 4px 0 #ad7045,0 0 7px rgba(0,0,0,.18);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    user-select:none;
+}
+
+.option::after{
+    content:"";
+    position:absolute;
+    bottom:0;
+    width:100%;
+    height:31px;
+    border-radius:0 0 44px 44px;
+    background:#ff9463;
+    z-index:0;
+}
+
+.option .emoji{
+    position:relative;
+    z-index:1;
+    font-size:38px;
+    line-height:1;
+    margin-bottom:7px;
+}
+
+.option .multi{
+    position:relative;
+    z-index:1;
+    font-size:20px;
+    font-weight:900;
+    color:#68240d;
+}
+
+.option.active{
+    outline:5px solid #ffe748;
+    box-shadow:0 0 18px #ffe748,0 4px 0 #ad7045;
+}
+
+.option:nth-child(1){top:0;left:50%;transform:translateX(-50%)}
+.option:nth-child(2){top:56px;right:10px}
+.option:nth-child(3){top:165px;right:0}
+.option:nth-child(4){bottom:25px;right:68px}
+.option:nth-child(5){bottom:0;left:50%;transform:translateX(-50%)}
+.option:nth-child(6){bottom:25px;left:68px}
+.option:nth-child(7){top:165px;left:0}
+.option:nth-child(8){top:56px;left:10px}
+
+.bridge{
+    position:absolute;
+    left:50%;
+    bottom:0;
+    width:160px;
+    height:178px;
+    transform:translateX(-50%);
+    background:linear-gradient(90deg,#d5a168,#f7d29b,#d5a168);
+    clip-path:polygon(28% 0,72% 0,100% 100%,0 100%);
+    z-index:-1;
+    opacity:.95;
+    border:4px solid #744019;
+}
+
+.bottom{
+    flex-shrink:0;
+    background:linear-gradient(180deg,#ffd3a0,#f59064);
+    border:4px solid #5c2c16;
+    border-radius:18px 18px 10px 10px;
+    padding:8px;
+    box-shadow:0 -4px 0 rgba(0,0,0,.18);
+}
+
+.history{
+    height:38px;
+    border:3px solid #5c2c16;
+    border-radius:12px;
+    background:#fff1cf;
+    display:flex;
+    align-items:center;
+    justify-content:space-around;
+    margin-bottom:8px;
+}
+
+.history div{
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    background:#ffd7b8;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:21px;
+}
+
+.chips{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
+}
+
+.chip{
+    height:64px;
+    border:3px solid #5c2c16;
+    border-radius:12px;
+    background:linear-gradient(180deg,#fff8da,#f7c45d);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-weight:900;
+    cursor:pointer;
+    box-shadow:0 4px 0 #a9542c;
+}
+
+.chip .coin{
+    font-size:26px;
+}
+
+.chip.active{
+    outline:4px solid #ffe748;
+    background:linear-gradient(180deg,#fff8da,#ffec5f);
+}
+
+.bet-info{
+    margin-top:8px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+.info-box{
+    height:44px;
+    border:3px solid #5c2c16;
+    border-radius:12px;
+    background:#fff2cf;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:17px;
+    font-weight:900;
+}
+
+#popup{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.65);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:99;
+}
+
+.popup-box{
+    width:min(88vw,380px);
+    background:linear-gradient(180deg,#ffe4b8,#f5b27e);
+    border:5px solid #5c2c16;
+    border-radius:18px;
+    box-shadow:0 0 28px rgba(255,255,255,.8);
+    overflow:hidden;
+}
+
+.popup-top{
+    height:88px;
+    background:#ffe748;
+    border-bottom:5px solid #5c2c16;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:58px;
+}
+
+.popup-title{
+    font-size:38px;
+    font-weight:900;
+    padding-top:22px;
+}
+
+.popup-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    padding:18px 18px 8px;
+    font-size:24px;
+    font-weight:900;
+}
+
+.popup-prizes{
+    margin:8px 20px 18px;
+    height:74px;
+    border:3px solid #5c2c16;
+    border-radius:12px;
+    background:#c9895a;
+    display:flex;
+    align-items:center;
+    justify-content:space-around;
+}
+
+.medal{
+    width:52px;
+    height:52px;
+    border-radius:50%;
+    background:linear-gradient(180deg,#ffef62,#db7c29);
+    border:3px solid #5c2c16;
+}
+
+.close-note{
+    font-size:16px;
+    font-weight:900;
+    padding:0 0 14px;
+}
+
+.help-text{
+    padding:18px;
+    font-size:18px;
+    line-height:1.8;
+    text-align:right;
+    font-weight:800;
+}
+
+.close-btn{
+    width:calc(100% - 36px);
+    height:42px;
+    margin:0 18px 18px;
+    border-radius:12px;
+    border:3px solid #5c2c16;
+    background:#ffe748;
+    font-size:20px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+@media(max-height:720px){
+    .top{height:46px}
+    .circle-btn{width:34px;height:34px;font-size:20px}
+    .player-card{height:38px}
+    .signal{top:58px}
+    .wheel-layout{width:315px;height:315px;top:6px}
+    .center-cat{width:108px;height:108px}
+    .cat{font-size:48px}
+    .choose-text{font-size:17px}
+    .option{width:78px;height:78px}
+    .option .emoji{font-size:31px}
+    .option .multi{font-size:17px}
+    .option:nth-child(2){top:45px;right:8px}
+    .option:nth-child(3){top:137px;right:0}
+    .option:nth-child(4){bottom:20px;right:55px}
+    .option:nth-child(6){bottom:20px;left:55px}
+    .option:nth-child(7){top:137px;left:0}
+    .option:nth-child(8){top:45px;left:8px}
+    .bridge{height:138px;width:135px}
+    .bottom{padding:6px}
+    .chips{gap:6px}
+    .chip{height:54px}
+    .chip .coin{font-size:22px}
+    .bet-info{margin-top:6px}
+    .info-box{height:38px;font-size:15px}
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <div class="top">
+        <div class="left-icons">
+            <div class="circle-btn" id="backBtn">↩</div>
+            <div class="circle-btn" id="helpBtn">?</div>
+        </div>
+
+        <div class="player-card">
+            <div class="player-name" id="playerIdBox">ID: ...</div>
+            <div class="balance" id="balance">0</div>
+        </div>
+
+        <div class="right-icons">
+            <div class="circle-btn">🔇</div>
+            <div class="circle-btn">☰</div>
+        </div>
+    </div>
+
+    <div class="signal">225ms</div>
+
+    <div class="farm-area">
+        <div class="wheel-layout" id="options">
+            <div class="option" data-emoji="🐔" data-multi="45"><div class="emoji">🐔</div><div class="multi">x45</div></div>
+            <div class="option" data-emoji="🐮" data-multi="25"><div class="emoji">🐮</div><div class="multi">x25</div></div>
+            <div class="option" data-emoji="🦀" data-multi="15"><div class="emoji">🦀</div><div class="multi">x15</div></div>
+            <div class="option" data-emoji="🐟" data-multi="10"><div class="emoji">🐟</div><div class="multi">x10</div></div>
+            <div class="option" data-emoji="🥕" data-multi="5"><div class="emoji">🥕</div><div class="multi">x5</div></div>
+            <div class="option" data-emoji="🍅" data-multi="5"><div class="emoji">🍅</div><div class="multi">x5</div></div>
+            <div class="option" data-emoji="🌽" data-multi="5"><div class="emoji">🌽</div><div class="multi">x5</div></div>
+            <div class="option" data-emoji="🌶️" data-multi="5"><div class="emoji">🌶️</div><div class="multi">x5</div></div>
+
+            <div class="center-cat">
+                <div class="cat">🐱</div>
+                <div class="choose-text">اختر الوقت</div>
+                <div class="timer" id="timer">20s</div>
+            </div>
+
+            <div class="bridge"></div>
+        </div>
+    </div>
+
+    <div class="bottom">
+        <div class="history" id="history">
+            <div>🌶️</div>
+            <div>🦀</div>
+            <div>🥕</div>
+            <div>🦀</div>
+            <div>🍅</div>
+            <div>🌽</div>
+            <div>🐔</div>
+        </div>
+
+        <div class="chips">
+            <div class="chip" data-value="100000"><div class="coin">🪙</div><div>100K</div></div>
+            <div class="chip" data-value="10000"><div class="coin">🪙</div><div>10K</div></div>
+            <div class="chip" data-value="1000"><div class="coin">🪙</div><div>1K</div></div>
+            <div class="chip active" data-value="100"><div class="coin">🪙</div><div>100</div></div>
+        </div>
+
+        <div class="bet-info">
+            <div class="info-box">رهانك: <span id="totalBet">0</span></div>
+            <div class="info-box">المحدد: <span id="selectedText">لا يوجد</span></div>
+        </div>
+    </div>
+
+</div>
+
+<div id="popup">
+    <div class="popup-box">
+        <div class="popup-top" id="popupEmoji">🐮</div>
+        <div class="popup-title" id="popupTitle">لم تشارك</div>
+        <div class="popup-row">
+            <div>رهاني: <span id="popupBet">0</span></div>
+            <div>ربحي: <span id="popupWin">0</span></div>
+        </div>
+        <div class="popup-prizes">
+            <div class="medal"></div>
+            <div class="medal"></div>
+            <div class="medal"></div>
+        </div>
+        <div class="close-note">إغلاق بعد ثواني</div>
+    </div>
+</div>
+
+<div id="helpPopup">
+    <div class="popup-box">
+        <div class="popup-top">?</div>
+        <div class="popup-title">شرح اللعبة</div>
+        <div class="help-text">
+            اختر قيمة الرهان من الأسفل.<br>
+            اضغط على الحيوان أو الرمز الذي تريد الرهان عليه.<br>
+            عند انتهاء الوقت تظهر النتيجة.<br>
+            إذا ظهر نفس اختيارك تربح حسب المضاعف المكتوب عليه.<br>
+            الرصيد مشترك مع لعبة العجلة.
+        </div>
+        <button class="close-btn" id="closeHelp">إغلاق</button>
+    </div>
+</div>
+
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyAivahrO2GOmZ5L3djdPJp2-eD8g0B1Aa8",
+    authDomain: "lucky-game-332e1.firebaseapp.com",
+    databaseURL: "https://lucky-game-332e1-default-rtdb.firebaseio.com",
+    projectId: "lucky-game-332e1",
+    storageBucket: "lucky-game-332e1.firebasestorage.app",
+    messagingSenderId: "376359612059",
+    appId: "1:376359612059:web:30e2612f92f1c4a494a03e"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+if(window.Telegram && Telegram.WebApp){
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+}
+
+let playerId = "guest";
+if(window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user){
+    playerId = String(Telegram.WebApp.initDataUnsafe.user.id);
+}else{
+    let guestId = localStorage.getItem("luckyGameGuestId");
+    if(!guestId){
+        guestId = "guest_" + Date.now();
+        localStorage.setItem("luckyGameGuestId", guestId);
+    }
+    playerId = guestId;
+}
+
+const playerRef = db.ref("players/" + playerId);
+
+const balanceEl = document.getElementById("balance");
+const playerIdBox = document.getElementById("playerIdBox");
+const timerEl = document.getElementById("timer");
+const totalBetEl = document.getElementById("totalBet");
+const selectedText = document.getElementById("selectedText");
+const historyEl = document.getElementById("history");
+
+const popup = document.getElementById("popup");
+const popupEmoji = document.getElementById("popupEmoji");
+const popupTitle = document.getElementById("popupTitle");
+const popupBet = document.getElementById("popupBet");
+const popupWin = document.getElementById("popupWin");
+
+const helpPopup = document.getElementById("helpPopup");
+const helpBtn = document.getElementById("helpBtn");
+const closeHelp = document.getElementById("closeHelp");
+const backBtn = document.getElementById("backBtn");
+
+playerIdBox.innerText = "ID: " + playerId;
+playerIdBox.onclick = ()=>{
+    navigator.clipboard.writeText(playerId);
+    showPopup("✅","تم نسخ ID",0,0,1200);
+};
+
+helpBtn.onclick = ()=> helpPopup.style.display = "flex";
+closeHelp.onclick = ()=> helpPopup.style.display = "none";
+backBtn.onclick = ()=> location.href = "index.html";
+
+let balance = 0;
+let selectedChip = 100;
+let selectedEmoji = null;
+let totalBet = 0;
+let timeLeft = 20;
+let locked = false;
+let audioContext = null;
+
+const options = [
+    {emoji:"🐔", multi:45},
+    {emoji:"🐮", multi:25},
+    {emoji:"🦀", multi:15},
+    {emoji:"🐟", multi:10},
+    {emoji:"🥕", multi:5},
+    {emoji:"🍅", multi:5},
+    {emoji:"🌽", multi:5},
+    {emoji:"🌶️", multi:5}
+];
+
+function initPlayer(){
+    balanceEl.innerText = "تحميل";
+    playerRef.once("value").then(snapshot=>{
+        if(!snapshot.exists()){
+            return playerRef.set({balance:0,lastDailyReward:0});
+        }
+    }).then(()=>{
+        playerRef.on("value", snapshot=>{
+            const data = snapshot.val() || {};
+            balance = Number(data.balance || 0);
+            balanceEl.innerText = formatMoney(balance);
+        });
+    });
+}
+
+function saveBalance(){
+    balanceEl.innerText = formatMoney(balance);
+    playerRef.update({balance:balance});
+}
+
+function formatMoney(value){
+    if(value >= 1000000) return Math.floor(value / 1000000) + "M";
+    if(value >= 1000) return Math.floor(value / 1000) + "K";
+    return String(value);
+}
+
+function initAudio(){
+    if(!audioContext){
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if(audioContext.state === "suspended") audioContext.resume();
+}
+
+document.addEventListener("click",initAudio,{once:true});
+document.addEventListener("touchstart",initAudio,{once:true});
+
+function tone(freq,duration,type="sine",vol=.12){
+    if(!audioContext) return;
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(vol,audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.001,audioContext.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.start();
+    osc.stop(audioContext.currentTime + duration);
+}
+
+function winSound(){
+    tone(523,.1);
+    setTimeout(()=>tone(659,.1),120);
+    setTimeout(()=>tone(880,.18),240);
+}
+
+function loseSound(){
+    tone(190,.18,"sawtooth",.1);
+    setTimeout(()=>tone(130,.22,"sawtooth",.1),150);
+}
+
+function updateInfo(){
+    totalBetEl.innerText = formatMoney(totalBet);
+    selectedText.innerText = selectedEmoji || "لا يوجد";
+}
+
+function resetRound(){
+    selectedEmoji = null;
+    totalBet = 0;
+    locked = false;
+    document.querySelectorAll(".option").forEach(o=>o.classList.remove("active"));
+    updateInfo();
+}
+
+function showPopup(emoji,title,bet,win,duration=3000){
+    popupEmoji.innerText = emoji;
+    popupTitle.innerText = title;
+    popupBet.innerText = formatMoney(bet);
+    popupWin.innerText = formatMoney(win);
+    popup.style.display = "flex";
+    setTimeout(()=>popup.style.display = "none",duration);
+}
+
+function updateHistory(result){
+    const items = Array.from(historyEl.children);
+    for(let i=items.length-1;i>0;i--){
+        items[i].innerText = items[i-1].innerText;
+    }
+    items[0].innerText = result;
+}
+
+document.querySelectorAll(".chip").forEach(chip=>{
+    chip.addEventListener("click",()=>{
+        if(locked) return;
+        document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+        chip.classList.add("active");
+        selectedChip = Number(chip.dataset.value);
+        tone(700,.06,"triangle",.08);
+    });
+});
+
+document.querySelectorAll(".option").forEach(option=>{
+    option.addEventListener("click",()=>{
+        if(locked) return;
+
+        if(balance < selectedChip){
+            tone(110,.12,"square",.1);
+            showPopup("❌","الرصيد غير كافي",0,0,1300);
+            return;
+        }
+
+        document.querySelectorAll(".option").forEach(o=>o.classList.remove("active"));
+        option.classList.add("active");
+
+        selectedEmoji = option.dataset.emoji;
+        balance -= selectedChip;
+        totalBet += selectedChip;
+
+        saveBalance();
+        updateInfo();
+        tone(520,.06,"triangle",.08);
+    });
+});
+
+function finishRound(){
+    locked = true;
+
+    const result = options[Math.floor(Math.random() * options.length)];
+    updateHistory(result.emoji);
+
+    let win = 0;
+    let title = "لم تشارك";
+
+    if(totalBet > 0 && selectedEmoji === result.emoji){
+        win = totalBet * result.multi;
+        balance += win;
+        title = "مبروك";
+        winSound();
+    }else if(totalBet > 0){
+        title = "خسرت";
+        loseSound();
+    }
+
+    saveBalance();
+    showPopup(result.emoji,title,totalBet,win,3200);
+
+    setTimeout(()=>{
+        resetRound();
+        timeLeft = 20;
+        timerEl.innerText = timeLeft + "s";
+    },3300);
+}
+
+setInterval(()=>{
+    if(locked) return;
+
+    timeLeft--;
+    timerEl.innerText = timeLeft + "s";
+
+    if(timeLeft <= 0){
+        finishRound();
+    }
+},1000);
+
+initPlayer();
+updateInfo();
+timerEl.innerText = timeLeft + "s";
+</script>
+
+</body>
+</html>
