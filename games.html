@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>اختيار اللعبة</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    min-height:100dvh;
+    font-family:Arial,sans-serif;
+    color:white;
+    text-align:center;
+    background:
+        radial-gradient(circle at 20% 15%,rgba(255,215,106,.28),transparent 28%),
+        radial-gradient(circle at 80% 20%,rgba(255,59,212,.25),transparent 28%),
+        radial-gradient(circle at 50% 85%,rgba(48,199,255,.22),transparent 34%),
+        linear-gradient(180deg,#10071e,#070411 60%,#020106);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:18px;
+}
+
+.app{
+    width:min(100%,430px);
+}
+
+.logo{
+    font-size:54px;
+    margin-bottom:8px;
+}
+
+h1{
+    margin:0;
+    color:#ffd76a;
+    font-size:34px;
+    text-shadow:0 0 18px rgba(255,215,106,.75);
+}
+
+.sub{
+    margin:8px 0 24px;
+    color:rgba(255,255,255,.78);
+    font-size:16px;
+}
+
+.games{
+    display:grid;
+    gap:14px;
+}
+
+.game-card{
+    min-height:132px;
+    border-radius:22px;
+    border:2px solid rgba(255,215,106,.78);
+    background:
+        linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05)),
+        radial-gradient(circle at 50% 0%,rgba(255,215,106,.28),transparent 55%),
+        linear-gradient(180deg,#251043,#10061d);
+    box-shadow:0 0 24px rgba(255,215,106,.22);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:18px;
+    cursor:pointer;
+    user-select:none;
+}
+
+.game-card:active{
+    transform:scale(.98);
+}
+
+.game-icon{
+    width:72px;
+    height:72px;
+    border-radius:20px;
+    background:rgba(0,0,0,.28);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:44px;
+    border:1px solid rgba(255,255,255,.18);
+}
+
+.game-info{
+    flex:1;
+    text-align:right;
+}
+
+.game-title{
+    color:#ffd76a;
+    font-size:24px;
+    font-weight:900;
+}
+
+.game-text{
+    margin-top:6px;
+    color:rgba(255,255,255,.75);
+    font-size:14px;
+    line-height:1.5;
+}
+
+.arrow{
+    color:#ffd76a;
+    font-size:30px;
+    font-weight:900;
+}
+
+.footer{
+    margin-top:20px;
+    color:rgba(255,255,255,.45);
+    font-size:12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+    <div class="logo">🎮</div>
+    <h1>كازينو الألعاب</h1>
+    <div class="sub">اختر اللعبة التي تريدها وابدأ اللعب</div>
+
+    <div class="games">
+        <div class="game-card" onclick="openGame('index.html')">
+            <div class="game-icon">🎡</div>
+            <div class="game-info">
+                <div class="game-title">عجلة الحظ</div>
+                <div class="game-text">راهن على الفاكهة وانتظر نتيجة العجلة.</div>
+            </div>
+            <div class="arrow">‹</div>
+        </div>
+
+        <div class="game-card" onclick="openGame('farm.html')">
+            <div class="game-icon">🐮</div>
+            <div class="game-info">
+                <div class="game-title">مزرعة الحظ</div>
+                <div class="game-text">اختر الرمز المناسب واربح حسب المضاعف.</div>
+            </div>
+            <div class="arrow">‹</div>
+        </div>
+    </div>
+
+    <div class="footer">رصيدك مشترك بين كل الألعاب</div>
+</div>
+
+<script>
+if(window.Telegram && Telegram.WebApp){
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+}
+
+function openGame(path){
+    window.location.href = path;
+}
+</script>
+
+</body>
+</html>
